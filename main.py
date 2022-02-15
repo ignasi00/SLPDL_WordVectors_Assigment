@@ -6,6 +6,7 @@ import torch.nn as nn
 import pandas as pd
 
 from data_loading import Vocabulary, batch_generator, load_preprocessed_dataset
+from local_logger import LocalLogger
 from model import CBOW
 
 
@@ -34,12 +35,10 @@ params = SimpleNamespace(
 )
 
 
-def train(model, criterion, optimizer, idata, target, batch_size, device, log=False):
+def train(model, criterion, optimizer, idata, target, batch_size, device, local_logger, log=False):
     model.train()
-    total_loss = 0
-    ncorrect = 0
-    ntokens = 0
-    niterations = 0
+    local_logger.new_epoch()
+
     for X, y in batch_generator(idata, target, batch_size, shuffle=True):
         # Get input and target sequences from batch
         X = torch.tensor(X, dtype=torch.long, device=device)
@@ -50,51 +49,44 @@ def train(model, criterion, optimizer, idata, target, batch_size, device, log=Fa
         loss = criterion(output, y)
         loss.backward()
         optimizer.step()
+
         # Training statistics
-        total_loss += loss.item()
-        ncorrect += (torch.max(output, 1)[1] == y).sum().item()
-        ntokens += y.numel()
-        niterations += 1
-        if niterations == 200 or niterations == 500 or niterations % 1000 == 0:
-            print(f'Train: wpb={ntokens//niterations}, num_updates={niterations}, accuracy={100*ncorrect/ntokens:.1f}, loss={total_loss/ntokens:.2f}')
+        local_logger.update_epoch_log(output, y, loss, VERBOSE=True)
 
-    total_loss = total_loss / ntokens
-    accuracy = 100 * ncorrect / ntokens
-    if log:
-        print(f'Train: wpb={ntokens//niterations}, num_updates={niterations}, accuracy={accuracy:.1f}, loss={total_loss:.2f}')
-    return accuracy, total_loss
+    local_logger.finish_epoch(VERBOSE=log)
+    return local_logger['accuracy'], local_logger['total_loss']
 
-def validate(model, criterion, idata, target, batch_size, device):
+def validate(model, criterion, idata, target, batch_size, device, local_logger=None):
     model.eval()
-    total_loss = 0
-    ncorrect = 0
-    ntokens = 0
-    niterations = 0
+    if local_logger is not None : local_logger.new_epoch()
+
     y_pred = []
     with torch.no_grad():
         for X, y in batch_generator(idata, target, batch_size, shuffle=False):
             # Get input and target sequences from batch
             X = torch.tensor(X, dtype=torch.long, device=device)
             output = model(X)
+
             if target is not None:
                 y = torch.tensor(y, dtype=torch.long, device=device)
                 loss = criterion(output, y)
-                total_loss += loss.item()
-                ncorrect += (torch.max(output, 1)[1] == y).sum().item()
-                ntokens += y.numel()
-                niterations += 1
+                
+                local_logger.update_epoch_log(output, y, loss, VERBOSE=False)
             else:
                 pred = torch.max(output, 1)[1].detach().to('cpu').numpy()
                 y_pred.append(pred)
 
     if target is not None:
-        total_loss = total_loss / ntokens
-        accuracy = 100 * ncorrect / ntokens
-        return accuracy, total_loss
+        local_logger.finish_epoch(VERBOSE=False)
+        return local_logger['accuracy'], local_logger['total_loss']
+
     else:
         return np.concatenate(y_pred)
 
 if __name__ == "__main__":
+
+    # TODO: all main into main function with parameters and here call docopts from docopts_parser.py and call the function as needed
+
     # Create working dir
     #pathlib.Path(WORKING_ROOT).mkdir(parents=True, exist_ok=True)
     pathlib.Path(MODELS_ROOT).mkdir(parents=True, exist_ok=True)
@@ -130,26 +122,32 @@ if __name__ == "__main__":
 
     optimizer = torch.optim.Adam(model.parameters())
 
-    train_accuracy = []
-    wiki_accuracy = []
-    valid_accuracy = []
+    # TODO: make and use a wandb logger
+
+    train_accuracy = LocalLogger()
+    wiki_accuracy = LocalLogger()
+    valid_accuracy = LocalLogger()
     for epoch in range(params.epochs):
-        acc, loss = train(model, criterion, optimizer, data[0][0], data[0][1], params.batch_size, device, log=True)
-        train_accuracy.append(acc)
+        acc, loss = train(model, criterion, optimizer, data[0][0], data[0][1], params.batch_size, device, train_accuracy, log=True)
         print(f'| epoch {epoch:03d} | train accuracy={acc:.1f}%, train loss={loss:.2f}')
-        acc, loss = validate(model, criterion, data[1][0], data[1][1], params.batch_size, device)
-        wiki_accuracy.append(acc)
+        
+        acc, loss = validate(model, criterion, data[1][0], data[1][1], params.batch_size, device, wiki_accuracy)
         print(f'| epoch {epoch:03d} | valid accuracy={acc:.1f}%, valid loss={loss:.2f} (wikipedia)')
-        acc, loss = validate(model, criterion, valid_x, valid_y, params.batch_size, device)
-        valid_accuracy.append(acc)
+        
+        acc, loss = validate(model, criterion, valid_x, valid_y, params.batch_size, device, valid_accuracy)
         print(f'| epoch {epoch:03d} | valid accuracy={acc:.1f}%, valid loss={loss:.2f} (El Periódico)')
 
     # Save model
     torch.save(model.state_dict(), params.modelname)
 
+    # TODO: Get best epoch model from wandb in order to generate the submission
+
+    # Submission generation
     y_pred = validate(model, None, test_x, None, params.batch_size, device)
     y_token = [vocab.idx2token[index] for index in y_pred]
 
     submission = pd.DataFrame({'id':valid_x_df['id'], 'token': y_token}, columns=['id', 'token'])
     print(submission.head())
     submission.to_csv(f'{OUTPUTS_ROOT}/submission.csv', index=False)
+
+    # TODO: Save submission on wandb artifact

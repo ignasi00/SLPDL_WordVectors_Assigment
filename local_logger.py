@@ -5,8 +5,9 @@ import torch
 class LocalLogger():
 
     def __init__(self):
+        # TODO: I do not like to have hardwired the elements to keep track of; maybe improving it
         self.epoch_log = dict( total_loss=0, ncorrect=0, ntokens=0, niterations=0, accuracy=0)
-        self.log = dict(accuracy=list())
+        self.log = dict(accuracy=list(), total_loss=list())
 
     def update_epoch_log(self, output, y, loss, VERBOSE=True):
         # Maybe this computations should be done elsewhere, them should still be stored here

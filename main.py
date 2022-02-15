@@ -10,9 +10,13 @@ from model import CBOW
 
 
 DATASET_VERSION = 'ca-100'
-COMPETITION_ROOT = '../input/vectors3'
-DATASET_ROOT = f'../input/text-preprocessing/data/{DATASET_VERSION}'
-WORKING_ROOT = f'data/{DATASET_VERSION}'
+#COMPETITION_ROOT = '../input/vectors3'
+COMPETITION_ROOT = 'data/word_vectors' # I downloaded it from https://www.kaggle.com/c/vectors3/data
+#DATASET_ROOT = f'../input/text-preprocessing/data/{DATASET_VERSION}'
+DATASET_ROOT = f'data/text-preprocessing/data/{DATASET_VERSION}'
+#WORKING_ROOT = f'data/{DATASET_VERSION}'
+MODELS_ROOT = f'model_parameters/{DATASET_VERSION}'
+OUTPUTS_ROOT = f'outputs/{DATASET_VERSION}'
 DATASET_PREFIX = 'ca.wiki'
 
 
@@ -22,8 +26,10 @@ params = SimpleNamespace(
     batch_size = 1000,
     epochs = 4,
     preprocessed = f'{DATASET_ROOT}/{DATASET_PREFIX}',
-    working = f'{WORKING_ROOT}/{DATASET_PREFIX}',
-    modelname = f'{WORKING_ROOT}/{DATASET_VERSION}.pt',
+    #working = f'{WORKING_ROOT}/{DATASET_PREFIX}',
+    working = f'{OUTPUTS_ROOT}/{DATASET_PREFIX}', # Not used anywhere
+    #modelname = f'{WORKING_ROOT}/{DATASET_VERSION}.pt',
+    modelname = f'{MODELS_ROOT}/{DATASET_VERSION}.pt',
     train = True
 )
 
@@ -90,7 +96,9 @@ def validate(model, criterion, idata, target, batch_size, device):
 
 if __name__ == "__main__":
     # Create working dir
-    pathlib.Path(WORKING_ROOT).mkdir(parents=True, exist_ok=True)
+    #pathlib.Path(WORKING_ROOT).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(MODELS_ROOT).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(OUTPUTS_ROOT).mkdir(parents=True, exist_ok=True)
 
     # Select device
     if torch.cuda.is_available():
@@ -116,7 +124,7 @@ if __name__ == "__main__":
     print(model)
     for name, param in model.named_parameters():
         print(f'{name:20} {param.numel()} {list(param.shape)}')
-    print(f'TOTAL{' ' * 16}{sum(p.numel() for p in model.parameters())}')
+    print(f'TOTAL{" " * 16}{sum(p.numel() for p in model.parameters())}')
 
     criterion = nn.CrossEntropyLoss(reduction='sum')
 
@@ -144,4 +152,4 @@ if __name__ == "__main__":
 
     submission = pd.DataFrame({'id':valid_x_df['id'], 'token': y_token}, columns=['id', 'token'])
     print(submission.head())
-    submission.to_csv('submission.csv', index=False)
+    submission.to_csv(f'{OUTPUTS_ROOT}/submission.csv', index=False)

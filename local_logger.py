@@ -10,7 +10,8 @@ class LocalLogger():
         self.log = dict(accuracy=list(), total_loss=list())
 
     def update_epoch_log(self, output, y, loss, VERBOSE=True):
-        # Maybe this computations should be done elsewhere, them should still be stored here
+        # Aggregate the current batch statistics to the previous ones.
+        # TODO: Maybe this computations should be done elsewhere, them should still be stored here
         self.epoch_log['total_loss'] += loss.item()
         self.epoch_log['ncorrect'] += (torch.max(output, 1)[1] == y).sum().item()
         self.epoch_log['ntokens'] += y.numel()

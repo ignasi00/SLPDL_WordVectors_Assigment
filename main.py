@@ -1,12 +1,12 @@
 
 from datetime import datetime
-from types import SimpleNamespace
-import pathlib
 import numpy as np
 import os
+import pandas as pd
+import pathlib
 import torch
 import torch.nn as nn
-import pandas as pd
+from types import SimpleNamespace
 
 from data_loading import Vocabulary, batch_generator, load_preprocessed_dataset
 from local_logger import LocalLogger
@@ -29,10 +29,10 @@ DATASET_PREFIX = 'ca.wiki'
 
 
 params = SimpleNamespace(
-    embedding_dim = 100,
+    embedding_dim = 100,                                            # TODO: hyperparam optimization
     window_size = 7,
-    batch_size = 1000,
-    epochs = 4,
+    batch_size = 1000,                                              # TODO: hyperparam optimization
+    epochs = 4,                                                     # TODO: hyperparam optimization
     preprocessed = f'{DATASET_ROOT}/{DATASET_PREFIX}',
     #working = f'{WORKING_ROOT}/{DATASET_PREFIX}',
     working = f'{OUTPUTS_ROOT}/{DATASET_PREFIX}', # Not used anywhere
@@ -92,7 +92,7 @@ def validate(model, criterion, idata, target, batch_size, device, local_logger=N
 
 if __name__ == "__main__":
 
-    # TODO: all main into main function with parameters and here call docopts from docopts_parser.py and call the function as needed
+    # TODO: all main into main function with parameters and here call docopts from docopts_parser.py and call the function as needed, additionally tracking random seeds may be usful (docopts + wandb)
 
     # Create working dir
     #pathlib.Path(WORKING_ROOT).mkdir(parents=True, exist_ok=True)
@@ -119,15 +119,15 @@ if __name__ == "__main__":
     valid_x_df = pd.read_csv(f'{COMPETITION_ROOT}/x_test.csv')
     test_x = valid_x_df[tokens].apply(vocab.get_index).to_numpy(dtype='int32')
 
-    model = CBOW(len(vocab), params.embedding_dim).to(device)
+    model = CBOW(len(vocab), params.embedding_dim).to(device) # TODO: section D, modify model to study sharing Input/output embedings. Section E, modify model to improve the embeddings.
     print(model)
     for name, param in model.named_parameters():
         print(f'{name:20} {param.numel()} {list(param.shape)}')
     print(f'TOTAL{" " * 16}{sum(p.numel() for p in model.parameters())}')
 
-    criterion = nn.CrossEntropyLoss(reduction='sum')
+    criterion = nn.CrossEntropyLoss(reduction='sum') # IGNASI: puede que haya losses mejores
 
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.Adam(model.parameters()) # TODO: hyperparam optimization (optimizer & learning_rate including not time/space constant learning_rates)
 
     wandb_logger = WandbLogger(PROJECT_NAME, EXPERIMENT_NAME, ENTITY)
     wandb_logger.watch_model(model)
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         wandb_logger.upload_model(params.modelname, aliases=[f'epoch_{epoch}'])
 
     # TODO: Process local_logger in order to set a "best" model (to a given epoch) tag and summarize the experiment in wandb
-    #xxxx = algo(some_local_loggers)
+    #xxxx = algo(some_local_loggers) # IGNASI: deberia haber metricas mejores que accuracy
     #wandb_logger.update_model(f'epoch_{xxxx}', ['best'])
     #wandb_logger.summarize <- diccionario de cosas a guardar, por ejemplo, estadisticas de todo de la mejor epoch o parametros de entrada
         
@@ -171,3 +171,5 @@ if __name__ == "__main__":
 
     # TODO: Save submission on wandb artifact
     wandb_logger.upload_submission(f'{OUTPUTS_ROOT}/submission.csv')
+
+# TODO: Task 2 of assigment (study of the datasets and submission files) in another program

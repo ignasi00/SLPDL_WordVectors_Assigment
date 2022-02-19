@@ -61,7 +61,7 @@ def train(model, criterion, optimizer, idata, target, batch_size, device, local_
         local_logger.update_epoch_log(output, y, loss, VERBOSE=True)
 
     local_logger.finish_epoch(VERBOSE=log)
-    return local_logger['accuracy'], local_logger['total_loss']
+    return local_logger['accuracy'][-1], local_logger['total_loss'][-1]
 
 def validate(model, criterion, idata, target, batch_size, device, local_logger=None):
     model.eval()
@@ -85,7 +85,7 @@ def validate(model, criterion, idata, target, batch_size, device, local_logger=N
 
     if target is not None:
         local_logger.finish_epoch(VERBOSE=False)
-        return local_logger['accuracy'], local_logger['total_loss']
+        return local_logger['accuracy'][-1], local_logger['total_loss'][-1]
 
     else:
         return np.concatenate(y_pred)
@@ -135,23 +135,23 @@ if __name__ == "__main__":
     train_accuracy = LocalLogger()
     wiki_accuracy = LocalLogger()
     valid_accuracy = LocalLogger()
-    for num_epoch, epoch in enumerate(range(params.epochs)):
+    for epoch in range(params.epochs):
         acc, loss = train(model, criterion, optimizer, data[0][0], data[0][1], params.batch_size, device, train_accuracy, log=True)
-        wandb_logger.log_epoch(train_accuracy.get_epoch_log(), step=num_epoch, prefix="train_")
+        wandb_logger.log_epoch(train_accuracy.get_last_epoch_log(prefix="train_"), step=epoch)
         print(f'| epoch {epoch:03d} | train accuracy={acc:.1f}%, train loss={loss:.2f}')
         
         acc, loss = validate(model, criterion, data[1][0], data[1][1], params.batch_size, device, wiki_accuracy)
-        wandb_logger.log_epoch(train_accuracy.get_epoch_log(), step=num_epoch, prefix="wiki_")
+        wandb_logger.log_epoch(train_accuracy.get_last_epoch_log(prefix="wiki_"), step=epoch)
         print(f'| epoch {epoch:03d} | valid accuracy={acc:.1f}%, valid loss={loss:.2f} (wikipedia)')
         
         acc, loss = validate(model, criterion, valid_x, valid_y, params.batch_size, device, valid_accuracy)
-        wandb_logger.log_epoch(train_accuracy.get_epoch_log(), step=num_epoch, prefix="valid_")
+        wandb_logger.log_epoch(train_accuracy.get_last_epoch_log(prefix="valid_"), step=epoch)
         print(f'| epoch {epoch:03d} | valid accuracy={acc:.1f}%, valid loss={loss:.2f} (El Periódico)')
 
         # Save model
         torch.save(model.state_dict(), params.modelname)
 
-        wandb_logger.upload_model(params.modelname, aliases=[f'epoch_{num_epoch}'])
+        wandb_logger.upload_model(params.modelname, aliases=[f'epoch_{epoch}'])
 
     # TODO: Process local_logger in order to set a "best" model (to a given epoch) tag and summarize the experiment in wandb
     #xxxx = algo(some_local_loggers)

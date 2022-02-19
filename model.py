@@ -23,6 +23,13 @@ class CBOW(nn.Module):
             else: # if vector is None:
                 weigths = torch.ones(num_context_words)
             
+        if len(weigths.shape) == 1:
+            weigths = weigths.unsqueeze(dim=0).unsqueeze(dim=2)
+        elif len(weigths.shape) == 2:
+            weigths = weigths.unsqueeze(dim=0)
+        else:
+            assert len(weigths.shape) == 1 or len(weigths.shape) == 2
+
         self.weigths = nn.Parameter(weigths, requires_grad=train_weigths)
 
     # B = Batch size
@@ -36,7 +43,7 @@ class CBOW(nn.Module):
 
         # u = e.sum(dim=1)
         # DONE: dot product through dim=1 to apply weigths:
-        u = (e * self.weigths.unsqueeze(dim=0).unsqueeze(dim=2)).sum(dim=1)
+        u = (e * self.weigths).sum(dim=1)
         # u shape is (B, E)
 
         z = self.lin(u)

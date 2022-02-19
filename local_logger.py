@@ -46,6 +46,10 @@ class LocalLogger():
     def get_epoch_log(self):
         return self.epoch_log
 
+    def get_last_epoch_log(self, prefix=None):
+        prefix = prefix or ''
+        return {f'{prefix}{k}' : v[-1] for k, v in self.epoch_log.items()}
+
     def new_epoch(self):
         for key in self.epoch_log.keys():
             self.epoch_log[key] = 0

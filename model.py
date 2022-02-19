@@ -1,4 +1,5 @@
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -9,13 +10,12 @@ class CBOW(nn.Module):
         self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
         self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
 
-        # TODO: if None => ; if vector => not trainable; if dtype => trainable
-        if isinstance(weigths, (list, torch.Tensor)): # TODO: cualquier cosa que sirva para meter numeros a pelo
-            self.weigths = # TODO: requier_grad=False Tensor of the elements of the weigths vector.
-        elif : # TODO: comprobar si weigths es un dtype (int, float, etc)
+        if isinstance(weigths, (torch.Tensor, np.ndarray, list, tuple)): # TODO: cualquier cosa que sirva para meter numeros a pelo
+            self.weigths = torch.Tensor(weigths, requires_grad=False)
+        elif isinstance(weigths, torch.dtype):
             self.weigths = # TODO: trainable Tensor of num_context_words
         else: # Includes it being None
-            self.weigths = # TODO: requier_grad=False Tensor of ones (num_context_words elements)
+            self.weigths = torch.ones(num_context_words, requires_grad=False)
 
 
     # B = Batch size

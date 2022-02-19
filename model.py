@@ -5,7 +5,8 @@ import torch.nn as nn
 
 
 class CBOW(nn.Module):
-    def __init__(self, num_embeddings, embedding_dim, num_context_words, weigths=None, vector=None, train_weigths=False):
+    def __init__(self, num_embeddings, embedding_dim, num_context_words=6, weigths=None, vector=None, train_weigths=False):
+        # By default, num_context_words=6 in order to be fully compatible with the original code from José Adrién Rodríguez Fonollosa
         super().__init__()
         self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
         self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)

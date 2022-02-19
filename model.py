@@ -5,18 +5,24 @@ import torch.nn as nn
 
 
 class CBOW(nn.Module):
-    def __init__(self, num_embeddings, embedding_dim, num_context_words, weigths=None):
+    def __init__(self, num_embeddings, embedding_dim, num_context_words, weigths=None, vector=None, train_weigths=False):
         super().__init__()
         self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
         self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
 
-        if isinstance(weigths, (torch.Tensor, np.ndarray, list, tuple)):
-            self.weigths = nn.Parameter(torch.Tensor(weigths), requires_grad=False)
-            assert len(self.weigths.shape) == 1
-        elif isinstance(weigths, torch.dtype):
-            self.weigths = nn.Parameter(torch.rand(num_context_words, dtype=weigths), requires_grad=True)
-        else: # Includes it being None (default)
-            self.weigths = nn.Parameter(torch.ones(num_context_words), requires_grad=False)
+        assert isinstance(weigths, (torch.Tensor, np.ndarray, list, tuple)) or weigths is None
+        
+        try:
+            weigths = torch.Tensor(weigths)
+        except:
+            if vector is False:
+                weigths = torch.rand(num_context_words)
+            elif vector is True:
+                weigths = torch.rand(num_context_words, embedding_dim)
+            else: # if vector is None:
+                weigths = torch.ones(num_context_words)
+            
+        self.weigths = nn.Parameter(weigths, requires_grad=train_weigths)
 
     # B = Batch size
     # W = Number of context words (left + right)

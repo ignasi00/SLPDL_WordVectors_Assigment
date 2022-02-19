@@ -27,7 +27,7 @@ class CBOW(nn.Module):
         e = self.emb(input)
         # e shape is (B, W, E)
         # u = e.sum(dim=1) # TODO: dot product through dim=1 to apply weigths.
-        u = (e * self.weigths.unsqueeze(dim=0).unsqueeze(dim=2)).sum(dim=1, keepdims=True)
+        u = (e * self.weigths.unsqueeze(dim=0).unsqueeze(dim=2)).sum(dim=1)
         # u shape is (B, E)
         z = self.lin(u)
         # z shape is (B, V)

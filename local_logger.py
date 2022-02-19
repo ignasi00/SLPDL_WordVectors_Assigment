@@ -42,6 +42,9 @@ class LocalLogger():
             return self.log[key]
         except:
             return self.epoch_log[key]
+    
+    def get_epoch_log(self):
+        return self.epoch_log
 
     def new_epoch(self):
         for key in self.epoch_log.keys():

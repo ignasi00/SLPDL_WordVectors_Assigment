@@ -20,8 +20,9 @@ class WandbLogger():
         # TODO: externally manage different indexes like batch_idx, #examples, etc
         wandb.log(dict_data, step=step, commit=commit)
 
-    def log_epoch(self, dict_data, step=None, commit=None):
+    def log_epoch(self, dict_data, step=None, commit=None, prefix=None):
         # TODO: externally manage different indexes like epoch_idx; in fact, this is exactly equal to log_batch
+        if prefix : dict_data = { f'{prefix}{k}' : v for k, v in dict_data.items()}
         wandb.log(dict_data, step=step, commit=commit)
 
     def upload_model(self, model_file, aliases=None):
@@ -32,6 +33,12 @@ class WandbLogger():
         aliases = ['latest'] + aliases
 
         wandb.log_artifact(model_io, aliases=aliases)
+
+    def update_model(self, search_alia, new_alias_list):
+        model_io = wandb.run.use_artifact(f'{self.experiment_name}:{search_alia}')
+        for alia in new_alias_list:
+            model_io.aliases.append(alia)
+        model_io.save()
 
     def upload_submission(self, submission_file, aliases=None):
         submission_io = wandb.Artifact(self.experiment_name, type="submissions")

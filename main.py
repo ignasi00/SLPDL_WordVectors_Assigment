@@ -139,6 +139,10 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, num_epochs
     
     wandb_logger = WandbLogger(PROJECT_NAME, experiment_name, ENTITY)
     wandb_logger.watch_model(model)
+    weights_summary = "hand-picked" if isinstance(weights, (torch.Tensor, np.ndarray, list, tuple)) else weights
+    hyperparameters = dict(embedding_dim=embedding_dim, weights=weights_summary, vector=vector, train_weights=train_weights, num_epochs=num_epochs, batch_size=batch_size, lr=lr)
+    hyperparameters['optim_type'] = type(optimizer)
+    wandb_logger.summarize(hyperparameters)
 
     train_accuracy = LocalLogger()
     wiki_accuracy = LocalLogger()
@@ -171,10 +175,13 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, num_epochs
     wandb_logger.summarize(train_accuracy.get_one_epoch_log(best_epoch, prefix="train_"))
     wandb_logger.summarize(wiki_accuracy.get_one_epoch_log(best_epoch, prefix="wiki_"))
     wandb_logger.summarize(valid_accuracy.get_one_epoch_log(best_epoch, prefix="valid_"))
-    # TODO: IGNASI: WandB: save the best weights and current hyperparameters as summaries.
 
     model_path = wandb_logger.download_model(os.paths.basename(modelname), os.path.dirname(modelname), alias=['best'])
     model.load_state_dict(torch.load(model_path))
+
+    # TODO: IGNASI: WandB: save the best weights
+    wandb_logger.summarize(dict(best_weights=str(model.weights.data.view(-1))))
+
     ############################################################################################
 
     #######################################  SUBMISSION  #######################################

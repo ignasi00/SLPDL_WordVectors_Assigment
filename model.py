@@ -5,32 +5,34 @@ import torch.nn as nn
 
 
 class CBOW(nn.Module):
-    def __init__(self, num_embeddings, embedding_dim, num_context_words=6, weigths=None, vector=None, train_weigths=False):
+    def __init__(self, num_embeddings, embedding_dim, num_context_words=6, weights=None, vector=None, train_weights=False):
         # By default, num_context_words=6 in order to be fully compatible with the original code from José Adrién Rodríguez Fonollosa
         super().__init__()
         self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
         self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
 
-        assert isinstance(weigths, (torch.Tensor, np.ndarray, list, tuple)) or weigths is None
+        assert isinstance(weights, (torch.Tensor, np.ndarray, list, tuple)) or weights is None
         
         try:
-            weigths = torch.Tensor(weigths)
-        except:
+            weights = torch.Tensor(weights)
+            assert len(weights) == num_context_words or (len(weights.shape) == 2 and weights.shape[0] == num_context_words and weights.shape[1] == embedding_dim)
+            # docopts only consider handpicking 1D weights
+        except: # if weights is None
             if vector is False:
-                weigths = torch.rand(num_context_words)
+                weights = torch.rand(num_context_words)
             elif vector is True:
-                weigths = torch.rand(num_context_words, embedding_dim)
+                weights = torch.rand(num_context_words, embedding_dim)
             else: # if vector is None:
-                weigths = torch.ones(num_context_words)
+                weights = torch.ones(num_context_words)
             
-        if len(weigths.shape) == 1:
-            weigths = weigths.unsqueeze(dim=0).unsqueeze(dim=2)
-        elif len(weigths.shape) == 2:
-            weigths = weigths.unsqueeze(dim=0)
+        if len(weights.shape) == 1:
+            weights = weights.unsqueeze(dim=0).unsqueeze(dim=2)
+        elif len(weights.shape) == 2:
+            weights = weights.unsqueeze(dim=0)
         else:
-            assert len(weigths.shape) == 1 or len(weigths.shape) == 2
+            assert len(weights.shape) == 1 or len(weights.shape) == 2
 
-        self.weigths = nn.Parameter(weigths, requires_grad=train_weigths)
+        self.weights = nn.Parameter(weights, requires_grad=train_weights)
 
     # B = Batch size
     # W = Number of context words (left + right)
@@ -42,8 +44,8 @@ class CBOW(nn.Module):
         # e shape is (B, W, E)
 
         # u = e.sum(dim=1)
-        # DONE: dot product through dim=1 to apply weigths:
-        u = (e * self.weigths).sum(dim=1)
+        # DONE: dot product through dim=1 to apply weights:
+        u = (e * self.weights).sum(dim=1)
         # u shape is (B, E)
 
         z = self.lin(u)

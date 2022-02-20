@@ -49,7 +49,7 @@ def batch_generator(idata, target, batch_size, shuffle=True):
     else:
         perm = range(nsamples)
 
-    for i in range(0, nsamples, batch_size): # Does not drop last
+    for i in range(0, nsamples, batch_size): # Does not drop last (¿TODO?)
         batch_idx = perm[i:i+batch_size]
         if target is not None:
             yield idata[batch_idx], target[batch_idx]

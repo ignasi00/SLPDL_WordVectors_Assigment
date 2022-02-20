@@ -1,4 +1,5 @@
 
+import numpy as np
 import torch
 
 
@@ -50,6 +51,18 @@ class LocalLogger():
         prefix = prefix or ''
         return {f'{prefix}{k}' : v[-1] for k, v in self.epoch_log.items()}
 
+    def get_one_epoch_log(self, epoch, prefix=None):
+        prefix = prefix or ''
+        return {f'{prefix}{k}' : v[epoch] for k, v in self.epoch_log.items()}
+
     def new_epoch(self):
         for key in self.epoch_log.keys():
             self.epoch_log[key] = 0
+
+    def best_epochs(self, key='accuracy', num_elems=1, offset=0, maximize=True):
+        vector = self.epoch_log[key].copy()
+        epochs = np.argsort(vector) + offset
+        if maximize : epochs = epochs[::-1]
+        
+        return epochs[:num_elems].tolist()
+

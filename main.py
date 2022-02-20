@@ -14,7 +14,7 @@ from model import CBOW
 
 
 PROJECT_NAME = "SLPDL_WordVectors"
-EXPERIMENT_NAME = datetime.now().strftime("%Y%m%d%H%M_trained-vector") # %Y%m%d%H%M_xxxx <- default, fixed, trained-scalar and trained-vector # TODO: en docopts, dependiendo de parametros un nombre u otro
+EXPERIMENT_NAME = datetime.now().strftime("%Y%m%d%H%M_trained-vector") # %Y%m%d%H%M_xxxx <- default, fixed, trained-scalar and trained-vector # TODO: IGNASI: en docopts, dependiendo de parametros un nombre u otro
 ENTITY = "slpdl2022"
 
 DATASET_VERSION = 'ca-100'
@@ -92,7 +92,7 @@ def validate(model, criterion, idata, target, batch_size, device, local_logger=N
 
 if __name__ == "__main__":
 
-    # TODO: all main into main function with parameters and here call docopts from docopts_parser.py and call the function as needed, additionally tracking random seeds may be usful (docopts + wandb)
+    # TODO: IGNASI: all main into main function with parameters and here call docopts from docopts_parser.py and call the function as needed, additionally tracking random seeds may be usful (docopts + wandb)
 
     # Create working dir
     #pathlib.Path(WORKING_ROOT).mkdir(parents=True, exist_ok=True)
@@ -119,13 +119,14 @@ if __name__ == "__main__":
     valid_x_df = pd.read_csv(f'{COMPETITION_ROOT}/x_test.csv')
     test_x = valid_x_df[tokens].apply(vocab.get_index).to_numpy(dtype='int32')
 
+    # TODO: set num_context_words=6, weigths=None, vector=None, train_weigths=False in order to do a, b, c
     model = CBOW(len(vocab), params.embedding_dim).to(device) # TODO: section D, modify model to study sharing Input/output embedings. Section E, modify model to improve the embeddings.
     print(model)
     for name, param in model.named_parameters():
         print(f'{name:20} {param.numel()} {list(param.shape)}')
     print(f'TOTAL{" " * 16}{sum(p.numel() for p in model.parameters())}')
 
-    criterion = nn.CrossEntropyLoss(reduction='sum') # IGNASI: puede que haya losses mejores
+    criterion = nn.CrossEntropyLoss(reduction='sum') # TODO: IGNASI: puede que haya losses mejores
 
     optimizer = torch.optim.Adam(model.parameters()) # TODO: hyperparam optimization (optimizer & learning_rate including not time/space constant learning_rates)
 
@@ -141,11 +142,11 @@ if __name__ == "__main__":
         print(f'| epoch {epoch:03d} | train accuracy={acc:.1f}%, train loss={loss:.2f}')
         
         acc, loss = validate(model, criterion, data[1][0], data[1][1], params.batch_size, device, wiki_accuracy)
-        wandb_logger.log_epoch(train_accuracy.get_last_epoch_log(prefix="wiki_"), step=epoch)
+        wandb_logger.log_epoch(wiki_accuracy.get_last_epoch_log(prefix="wiki_"), step=epoch)
         print(f'| epoch {epoch:03d} | valid accuracy={acc:.1f}%, valid loss={loss:.2f} (wikipedia)')
         
         acc, loss = validate(model, criterion, valid_x, valid_y, params.batch_size, device, valid_accuracy)
-        wandb_logger.log_epoch(train_accuracy.get_last_epoch_log(prefix="valid_"), step=epoch)
+        wandb_logger.log_epoch(valid_accuracy.get_last_epoch_log(prefix="valid_"), step=epoch)
         print(f'| epoch {epoch:03d} | valid accuracy={acc:.1f}%, valid loss={loss:.2f} (El Periódico)')
 
         # Save model
@@ -153,13 +154,16 @@ if __name__ == "__main__":
 
         wandb_logger.upload_model(params.modelname, aliases=[f'epoch_{epoch}'])
 
-    # TODO: Process local_logger in order to set a "best" model (to a given epoch) tag and summarize the experiment in wandb
-    #xxxx = algo(some_local_loggers) # IGNASI: deberia haber metricas mejores que accuracy
-    #wandb_logger.update_model(f'epoch_{xxxx}', ['best'])
-    #wandb_logger.summarize <- diccionario de cosas a guardar, por ejemplo, estadisticas de todo de la mejor epoch o parametros de entrada
-        
-    # TODO: Get the "best" epoch model from wandb in order to generate the submission
-    #wandb_logger.download_model(os.paths.basename(params.modelname), os.path.dirname(params.modelname), alias=['best'])
+    best_epoch = valid_accuracy.best_epochs()[0] # TODO: IGNASI: deberia haber metricas mejores que accuracy, puede que decidir combinando resultados de wiki y periodico sea mejor.
+    wandb_logger.update_model(f'epoch_{best_epoch}', ['best'])
+    wandb_logger.summarize(train_accuracy.get_one_epoch_log(best_epoch, prefix="train_"))
+    wandb_logger.summarize(wiki_accuracy.get_one_epoch_log(best_epoch, prefix="wiki_"))
+    wandb_logger.summarize(valid_accuracy.get_one_epoch_log(best_epoch, prefix="valid_"))
+    # TODO: IGNASI: WandB: save the best weigths and current hyperparameters as summaries.
+
+    model_path = wandb_logger.download_model(os.paths.basename(params.modelname), os.path.dirname(params.modelname), alias=['best'])
+    model.load_state_dict(torch.load(model_path))
+
 
     # Submission generation
     y_pred = validate(model, None, test_x, None, params.batch_size, device)
@@ -169,7 +173,6 @@ if __name__ == "__main__":
     print(submission.head())
     submission.to_csv(f'{OUTPUTS_ROOT}/submission.csv', index=False)
 
-    # TODO: Save submission on wandb artifact
     wandb_logger.upload_submission(f'{OUTPUTS_ROOT}/submission.csv')
 
 # TODO: Task 2 of assigment (study of the datasets and submission files) in another program

@@ -10,7 +10,7 @@ import torch.nn as nn
 from types import SimpleNamespace
 
 from data_loading import Vocabulary, batch_generator, load_preprocessed_dataset
-from docopts_parser import parse_args
+from docopt_parser import parse_args
 from local_logger import LocalLogger
 from model import CBOW
 from wandb_logger import WandbLogger
@@ -138,7 +138,7 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, num_epochs
     optimizer = build_optimizer(optimizer_class, model, **optimizer_params)
     
     wandb_logger = WandbLogger(PROJECT_NAME, experiment_name, ENTITY)
-    wandb_logger.watch_model(model)
+    wandb_logger.watch_model(model, log="all", log_freq=20)
     weights_summary = "hand-picked" if isinstance(weights, (torch.Tensor, np.ndarray, list, tuple)) else weights
     hyperparameters = dict(embedding_dim=embedding_dim, weights=weights_summary, vector=vector, train_weights=train_weights, num_epochs=num_epochs, batch_size=batch_size, lr=lr)
     hyperparameters['optim_type'] = type(optimizer)

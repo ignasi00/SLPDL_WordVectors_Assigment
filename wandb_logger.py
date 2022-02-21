@@ -27,7 +27,7 @@ class WandbLogger():
         if prefix : dict_data = { f'{prefix}{k}' : v for k, v in dict_data.items()}
         wandb.log(dict_data, step=step, commit=commit)
 
-    def upload_model(self, model_file, aliases=None):
+    def upload_model(self, model_file, aliases=None, wait=True):
         model_io = wandb.Artifact(self.experiment_name, type="model_parameters")
         model_io.add_file(model_file)
 
@@ -35,6 +35,7 @@ class WandbLogger():
         aliases = ['latest'] + aliases
 
         wandb.log_artifact(model_io, aliases=aliases)
+        if wait: model_io.wait()
 
     def update_model(self, search_alia, new_alias_list):
         model_io = wandb.run.use_artifact(f'{self.entity}/{self.project_name}/{self.experiment_name}:{search_alia}', type="model_parameters")
@@ -42,7 +43,7 @@ class WandbLogger():
             model_io.aliases.append(alia)
         model_io.save()
 
-    def upload_submission(self, submission_file, aliases=None):
+    def upload_submission(self, submission_file, aliases=None, wait=False):
         submission_io = wandb.Artifact(self.experiment_name, type="submissions")
         submission_io.add_file(model_file)
 
@@ -50,6 +51,7 @@ class WandbLogger():
         aliases = ['latest'] + aliases
 
         wandb.log_artifact(submission_io, aliases=aliases)
+        if wait: submission_io.wait()
     
     def summarize(self, dict_data):
         # log on a given run single final values like best scores (overwritting), configs, best epoch, etc

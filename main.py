@@ -165,7 +165,7 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, num_epochs
 
         # Save model
         torch.save(model.state_dict(), modelname)
-        wandb_logger.upload_model(modelname, aliases=[f'epoch_{epoch}'], wait=True)
+        wandb_logger.upload_model(modelname, aliases=[f'epoch_{epoch}'], wait=(epoch==(num_epochs-1)))
         
         wandb_logger.log_epoch({'epoch' : epoch}, step=epoch, commit=True)
 

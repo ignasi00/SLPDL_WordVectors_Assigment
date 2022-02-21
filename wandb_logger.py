@@ -10,6 +10,8 @@ class WandbLogger():
         # only 1 run should exist at the same script at the same time...
         wandb.init(project=f"{project_name}", entity=entity)
 
+        self.entity = entity
+        self.project_name = project_name
         self.experiment_name = experiment_name
 
     def watch_model(self, model, log="all", log_freq=1000):
@@ -35,7 +37,7 @@ class WandbLogger():
         wandb.log_artifact(model_io, aliases=aliases)
 
     def update_model(self, search_alia, new_alias_list):
-        model_io = wandb.run.use_artifact(f'{self.experiment_name}:{search_alia}')
+        model_io = wandb.run.use_artifact(f'{self.entity}/{self.project_name}/{self.experiment_name}:{search_alia}', type="model_parameters")
         for alia in new_alias_list:
             model_io.aliases.append(alia)
         model_io.save()
@@ -57,7 +59,7 @@ class WandbLogger():
     def download_model(self, model_filename, output_dir, alias=None):
         alias = alias or "latest"
         # Query W&B for an artifact and mark it as input to this run
-        artifact = run.use_artifact(f'{self.experiment_name}:{alias}')
+        artifact = wandb.run.use_artifact(f'{self.entity}/{self.project_name}/{self.experiment_name}:{alias}', type="model_parameters")
 
         # Download the artifact's contents
         artifact_dir = artifact.download()

@@ -178,7 +178,7 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, num_epochs
     wandb_logger.summarize(wiki_accuracy.get_one_epoch_log(best_epoch, prefix="wiki_"))
     wandb_logger.summarize(valid_accuracy.get_one_epoch_log(best_epoch, prefix="valid_"))
 
-    model_path = wandb_logger.download_model(os.paths.basename(modelname), os.path.dirname(modelname), alias=['best'])
+    model_path = wandb_logger.download_model(os.path.basename(modelname), os.path.dirname(modelname), alias='best')
     model.load_state_dict(torch.load(model_path))
 
     # TODO: IGNASI: WandB: save the best weights

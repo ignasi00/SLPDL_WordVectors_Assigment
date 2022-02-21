@@ -106,7 +106,7 @@ def build_periodico_dataset(vocab):
     valid_x_df = pd.read_csv(f'{COMPETITION_ROOT}/x_test.csv')
     test_x = valid_x_df[tokens].apply(vocab.get_index).to_numpy(dtype='int32')
 
-    return valid_x, valid_y, valid_x_df
+    return valid_x, valid_y, valid_x_df, test_x
 
 def print_model(model):
     print(model)
@@ -123,7 +123,7 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, num_epochs
 
     ####################################### PRETRAINING  #######################################
     vocab, data = load_preprocessed_dataset(preprocessed_path)
-    valid_x, valid_y, valid_x_df = build_periodico_dataset(vocab)
+    valid_x, valid_y, valid_x_df, test_x = build_periodico_dataset(vocab)
 
     # TODO: Set weights=xxxx, vector=yyyy, train_weights=zzzz in order to do a, b, c
     # TODO: Section D, modify model to study sharing Input/output embedings.

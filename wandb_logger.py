@@ -44,7 +44,7 @@ class WandbLogger():
         model_io.save()
 
     def upload_submission(self, submission_file, aliases=None, wait=False):
-        submission_io = wandb.Artifact(self.experiment_name, type="submissions")
+        submission_io = wandb.Artifact(f'{self.experiment_name}_submission', type="submissions")
         submission_io.add_file(submission_file)
 
         aliases = aliases or []

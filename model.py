@@ -9,8 +9,12 @@ class CBOW(nn.Module):
         # By default, num_context_words=6 in order to be fully compatible with the original code from José Adrién Rodríguez Fonollosa
         super().__init__()
         self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
-        self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
-        if shared_embedding : self.lin.weight.data = self.emb.weight.data.transpose(1, 0)
+        
+        if shared_embedding:
+            self.lin = nn.Embedding(embedding_dim, num_embeddings, padding_idx=0)
+            self.lin.weight.data = self.emb.weight.data.transpose(1, 0)
+        else:
+            self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
 
         assert isinstance(weights, (torch.Tensor, np.ndarray, list, tuple)) or weights is None
         

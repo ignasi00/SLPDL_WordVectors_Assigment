@@ -31,10 +31,10 @@ DATASET_PREFIX = 'ca.wiki'
 
 
 params = SimpleNamespace(
-    embedding_dim = 100,                                            # TODO: hyperparam optimization
+    embedding_dim = 100,
     window_size = 7,
-    batch_size = 1000,                                              # TODO: hyperparam optimization
-    epochs = 4,                                                     # TODO: hyperparam optimization
+    batch_size = 1000,
+    epochs = 4,
     preprocessed = f'{DATASET_ROOT}/{DATASET_PREFIX}',
     #working = f'{WORKING_ROOT}/{DATASET_PREFIX}',
     working = f'{OUTPUTS_ROOT}/{DATASET_PREFIX}', # Not used anywhere
@@ -93,7 +93,7 @@ def validate(model, criterion, idata, target, batch_size, device, local_logger=N
         return np.concatenate(y_pred)
 
 def build_periodico_dataset(vocab):
-    # IGNSAI: Funcion un poco fea porque depende de constantes
+    # IGNSAI: Funcion un poco fea porque depende directamente de constantes o hard-wired text
 
     # 'El Periodico' validation dataset
     valid_x_df = pd.read_csv(f'{COMPETITION_ROOT}/x_valid.csv')
@@ -119,16 +119,15 @@ def build_optimizer(optimizer_class, model, **optimizer_params):
     optimizer = optimizer_class(model.parameters(), **optimizer_params)
     return optimizer
 
-def main(window_size, embedding_dim,  weights, vector, train_weights, num_epochs, batch_size, lr, preprocessed_path, modelname, experiment_name, device):
+def main(window_size, embedding_dim,  weights, vector, train_weights, shared_embedding, num_epochs, batch_size, lr, preprocessed_path, modelname, experiment_name, device):
 
     ####################################### PRETRAINING  #######################################
     vocab, data = load_preprocessed_dataset(preprocessed_path)
     valid_x, valid_y, valid_x_df, test_x = build_periodico_dataset(vocab)
 
-    # TODO: Set weights=xxxx, vector=yyyy, train_weights=zzzz in order to do a, b, c
-    # TODO: Section D, modify model to study sharing Input/output embedings.
+    # TODO: Section D, study sharing Input/output embedings efect.
     # TODO: Section E, modify model to improve the embeddings.
-    model = CBOW(len(vocab), embedding_dim, num_context_words=window_size-1, weights=weights, vector=vector, train_weights=train_weights).to(device)
+    model = CBOW(len(vocab), embedding_dim, num_context_words=window_size-1, weights=weights, vector=vector, train_weights=train_weights, , shared_embedding=shared_embedding).to(device)
     print_model(model)
 
     criterion = nn.CrossEntropyLoss(reduction='sum') # TODO: IGNASI: puede que haya losses mejores
@@ -181,7 +180,6 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, num_epochs
     model_path = wandb_logger.download_model(os.path.basename(modelname), os.path.dirname(modelname), alias='best')
     model.load_state_dict(torch.load(model_path))
 
-    # TODO: IGNASI: WandB: save the best weights
     wandb_logger.summarize(dict(best_weights=str(model.weights.data.view(-1))))
 
     ############################################################################################
@@ -201,7 +199,7 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, num_epochs
 
 if __name__ == "__main__":
 
-    (experiment_name, weights, vector, train_weights, embedding_dim, batch_size, epochs, lr, torch_seed, random_seed, numpy_seed) = parse_args(sys.argv[1:])
+    (experiment_name, weights, vector, train_weights, embedding_dim, shared_embedding, batch_size, epochs, lr, torch_seed, random_seed, numpy_seed) = parse_args(sys.argv[1:])
 
     params.embedding_dim = embedding_dim
     params.batch_size = batch_size
@@ -223,6 +221,6 @@ if __name__ == "__main__":
         device = torch.device('cpu')
         print("WARNING: Training without GPU can be very slow!")
 
-    main(params.window_size, params.embedding_dim,  weights, vector, train_weights, params.epochs, params.batch_size, lr, params.preprocessed, params.modelname, experiment_name, device)
+    main(params.window_size, params.embedding_dim,  weights, vector, train_weights, shared_embedding, params.epochs, params.batch_size, lr, params.preprocessed, params.modelname, experiment_name, device)
 
 # TODO: Task 2 of assigment (study of the datasets and submission files) in another program

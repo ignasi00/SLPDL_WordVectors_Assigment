@@ -7,6 +7,7 @@ WEIGHTS = [1] * 6
 TRAIN_WEIGHTS = False
 VECTOR = False
 EMBEDDING_DIM = 100
+SHARED_EMBEDDING = False
 BATCH_SIZE = 1000
 EPOCHS = 4
 LEARNING_RATE = 0.001
@@ -17,7 +18,7 @@ NUMPY_SEED = 0
 
 DOCTEXT = f"""
 Usage:
-  main [--weights=<w>...|--train_weights=<tw>] [--vector=<v>] [--embedding_dim=<ed>] [--batch_size=<bs>] [--epochs=<e>] [--lr=<lr>] [--torch_seed=<ts>] [--random_seed=<rs>] [--numpy_seed=<ns>]
+  main [--weights=<w>...|--train_weights=<tw>] [--vector=<v>] [--embedding_dim=<ed>] [--shared_embedding=<se>] [--batch_size=<bs>] [--epochs=<e>] [--lr=<lr>] [--torch_seed=<ts>] [--random_seed=<rs>] [--numpy_seed=<ns>]
   main -h | --help
 
 ########################################################
@@ -29,6 +30,7 @@ Options:
   --train_weights=<tw>        Bool. Set to True in order to train the weights. Set to False in order to not train them [default: {TRAIN_WEIGHTS}].
   --vector=<v>                Bool. Set to True if the weights ponder the embedding dimensions. Set to False if the weights are only position-wise [default: {VECTOR}]. 
   --embedding_dim=<ed>        Int. Number of dimensions for the embedding space [default: {EMBEDDING_DIM}].
+  --shared_embedding=<se>     Bool. Set to True in order to use the embedding transposed on the linear layer weigths [default: {SHARED_EMBEDDING}].
   --batch_size=<bs>           Int. Number of samples to be processed simultaneously (before applying a optimization step) [default: {BATCH_SIZE}].
   --epochs=<e>                Int. Number of epochs (how many times the model sees all the training data) [default: {EPOCHS}].
   --lr=<lr>                   Positive float. It controlls the optimization speed and it is reallly important [default: {LEARNING_RATE}]. 
@@ -46,6 +48,7 @@ def parse_args(argv):
     weights = None if train_weights else [float(x) for x in opts['--weights']]
     vector = True if opts['--vector'] == 'True' else (False if opts['--vector'] == 'False' else None)
     embedding_dim = int(opts['--embedding_dim'])
+    shared_embedding = True if opts['--shared_embedding'] == 'True' else False
     batch_size = int(opts['--batch_size'])
     epochs = int(opts['--epochs'])
     lr = float(opts['--lr'])
@@ -61,6 +64,6 @@ def parse_args(argv):
     else:
         experiment_name = datetime.now().strftime("%Y%m%d%H%M_fixed")
 
-    args = (experiment_name, weights, vector, train_weights, embedding_dim, batch_size, epochs, lr, torch_seed, random_seed, numpy_seed)
+    args = (experiment_name, weights, vector, train_weights, embedding_dim, shared_embedding, batch_size, epochs, lr, torch_seed, random_seed, numpy_seed)
 
     return args

@@ -2,15 +2,21 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class CBOW(nn.Module):
     def __init__(self, num_embeddings, embedding_dim, num_context_words=6, weights=None, vector=None, train_weights=False, shared_embedding=False):
         # By default, num_context_words=6 in order to be fully compatible with the original code from José Adrién Rodríguez Fonollosa
         super().__init__()
-        self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
-        self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
-        if shared_embedding : self.lin.weight.data = self.emb.weight.data #.transpose(1, 0)
+        
+        if shared_embedding:
+            self.embedding = nn.Parameter(torch.rand(num_embeddings, embedding_dim), requires_grad=True)
+            self.emb = lambda x : F.embedding(x, self.embedding, padding_idx=0)
+            self.lin = lambda x : F.linear(x, self.embedding)
+        else:
+            self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
+            self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
 
         assert isinstance(weights, (torch.Tensor, np.ndarray, list, tuple)) or weights is None
         

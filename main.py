@@ -127,7 +127,7 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, shared_emb
 
     # TODO: Section D, study sharing Input/output embedings efect.
     # TODO: Section E, modify model to improve the embeddings.
-    model = CBOW(len(vocab), embedding_dim, num_context_words=window_size-1, weights=weights, vector=vector, train_weights=train_weights, , shared_embedding=shared_embedding).to(device)
+    model = CBOW(len(vocab), embedding_dim, num_context_words=window_size-1, weights=weights, vector=vector, train_weights=train_weights, shared_embedding=shared_embedding).to(device)
     print_model(model)
 
     criterion = nn.CrossEntropyLoss(reduction='sum') # TODO: IGNASI: puede que haya losses mejores

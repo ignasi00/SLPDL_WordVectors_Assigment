@@ -16,6 +16,9 @@ from model import CBOW
 from wandb_logger import WandbLogger
 
 
+ACCUMULATE_GRADS = True
+PROCESS_BATCH_SIZE = 7700
+
 PROJECT_NAME = "SLPDL_WordVectors"
 ENTITY = "slpdl2022"
 
@@ -48,19 +51,31 @@ def train(model, criterion, optimizer, idata, target, batch_size, device, local_
     model.train()
     local_logger.new_epoch()
 
-    for X, y in batch_generator(idata, target, batch_size, shuffle=True):
+    process_batch_size = PROCESS_BATCH_SIZE if ACCUMULATE_GRADS else batch_size
+    model.zero_grad()
+    proceced_samples = 0
+
+    for X, y in batch_generator(idata, target, process_batch_size, shuffle=True):
         # Get input and target sequences from batch
         X = torch.tensor(X, dtype=torch.long, device=device)
         y = torch.tensor(y, dtype=torch.long, device=device)
 
-        model.zero_grad()
+        if not ACCUMULATE_GRADS : model.zero_grad()
         output = model(X)
         loss = criterion(output, y)
         loss.backward()
-        optimizer.step()
+        if not ACCUMULATE_GRADS : optimizer.step()
 
         # Training statistics
         local_logger.update_epoch_log(output, y, loss, VERBOSE=True)
+
+        # If accumulation of gradient to have bigger batches, ugly solution but should work
+        proceced_samples += process_batch_size
+        if ACCUMULATE_GRADS and proceced_samples >= batch_size:
+            proceced_samples = 0
+            optimizer.step()
+            model.zero_grad()
+
 
     local_logger.finish_epoch(VERBOSE=log)
     return local_logger['accuracy'][-1], local_logger['total_loss'][-1]
@@ -68,6 +83,8 @@ def train(model, criterion, optimizer, idata, target, batch_size, device, local_
 def validate(model, criterion, idata, target, batch_size, device, local_logger=None):
     model.eval()
     if local_logger is not None : local_logger.new_epoch()
+
+    if ACCUMULATE_GRADS : batch_size = PROCESS_BATCH_SIZE
 
     y_pred = []
     with torch.no_grad():
@@ -119,13 +136,15 @@ def build_optimizer(optimizer_class, model, **optimizer_params):
     optimizer = optimizer_class(model.parameters(), **optimizer_params)
     return optimizer
 
-def main(window_size, embedding_dim,  weights, vector, train_weights, shared_embedding, num_epochs, batch_size, lr, preprocessed_path, modelname, experiment_name, device):
+def main(window_size, embedding_dim,  weights, vector, train_weights, shared_embedding, num_epochs, batch_size, fract, fract_dataset, lr, preprocessed_path, modelname, experiment_name, device):
 
     ####################################### PRETRAINING  #######################################
     vocab, data = load_preprocessed_dataset(preprocessed_path)
     valid_x, valid_y, valid_x_df, test_x = build_periodico_dataset(vocab)
 
-    # TODO: Section D, study sharing Input/output embedings efect.
+    if fract:
+        batch_size = int(len(data[0][0]) / fract_dataset) - int((data[0][0]) // fract_dataset) / fract_dataset)
+
     # TODO: Section E, modify model to improve the embeddings.
     model = CBOW(len(vocab), embedding_dim, num_context_words=window_size-1, weights=weights, vector=vector, train_weights=train_weights, shared_embedding=shared_embedding).to(device)
     print_model(model)
@@ -199,7 +218,7 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, shared_emb
 
 if __name__ == "__main__":
 
-    (experiment_name, weights, vector, train_weights, embedding_dim, shared_embedding, batch_size, epochs, lr, torch_seed, random_seed, numpy_seed) = parse_args(sys.argv[1:])
+    (experiment_name, weights, vector, train_weights, embedding_dim, shared_embedding, batch_size, fract, fract_dataset, epochs, lr, torch_seed, random_seed, numpy_seed) = parse_args(sys.argv[1:])
 
     params.embedding_dim = embedding_dim
     params.batch_size = batch_size
@@ -221,6 +240,6 @@ if __name__ == "__main__":
         device = torch.device('cpu')
         print("WARNING: Training without GPU can be very slow!")
 
-    main(params.window_size, params.embedding_dim,  weights, vector, train_weights, shared_embedding, params.epochs, params.batch_size, lr, params.preprocessed, params.modelname, experiment_name, device)
+    main(params.window_size, params.embedding_dim,  weights, vector, train_weights, shared_embedding, params.epochs, params.batch_size, fract, fract_dataset, lr, params.preprocessed, params.modelname, experiment_name, device)
 
 # TODO: Task 2 of assigment (study of the datasets and submission files) in another program

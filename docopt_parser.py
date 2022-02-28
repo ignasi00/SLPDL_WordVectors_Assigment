@@ -9,6 +9,8 @@ VECTOR = False
 EMBEDDING_DIM = 100
 SHARED_EMBEDDING = False
 BATCH_SIZE = 1000
+FRACT = False
+FRACT_DATASET = 1
 EPOCHS = 4
 LEARNING_RATE = 0.001
 TORCH_SEED = 0
@@ -18,7 +20,7 @@ NUMPY_SEED = 0
 
 DOCTEXT = f"""
 Usage:
-  main [--weights=<w>...|--train_weights=<tw>] [--vector=<v>] [--embedding_dim=<ed>] [--shared_embedding=<se>] [--batch_size=<bs>] [--epochs=<e>] [--lr=<lr>] [--torch_seed=<ts>] [--random_seed=<rs>] [--numpy_seed=<ns>]
+  main [--weights=<w>...|--train_weights=<tw>] [--vector=<v>] [--embedding_dim=<ed>] [--shared_embedding=<se>] [--batch_size=<bs>|(--fract=<f> --fract_dataset=<fd>)] [--epochs=<e>] [--lr=<lr>] [--torch_seed=<ts>] [--random_seed=<rs>] [--numpy_seed=<ns>]
   main -h | --help
 
 ########################################################
@@ -32,6 +34,8 @@ Options:
   --embedding_dim=<ed>        Int. Number of dimensions for the embedding space [default: {EMBEDDING_DIM}].
   --shared_embedding=<se>     Bool. Set to True in order to use the embedding transposed on the linear layer weigths [default: {SHARED_EMBEDDING}].
   --batch_size=<bs>           Int. Number of samples to be processed simultaneously (before applying a optimization step) [default: {BATCH_SIZE}].
+  --fract=<f>                 Bool. Set to True in order to define the batch size as a fraction of the dataset [default: {FRACT}].
+  --fract_dataset=<fd>        Int. Number of parts to divide the dataset into [default: {FRACT_DATASET}].
   --epochs=<e>                Int. Number of epochs (how many times the model sees all the training data) [default: {EPOCHS}].
   --lr=<lr>                   Positive float. It controlls the optimization speed and it is reallly important [default: {LEARNING_RATE}]. 
   --torch_seed=<ts>           Int. Set the state of the pseudo-random number generator in order to have reproducibility [default: {TORCH_SEED}].
@@ -50,6 +54,8 @@ def parse_args(argv):
     embedding_dim = int(opts['--embedding_dim'])
     shared_embedding = True if opts['--shared_embedding'] == 'True' else False
     batch_size = int(opts['--batch_size'])
+    fract = True if opts['--fract'] == 'True' else False
+    fract_dataset = int(opts['--fract_dataset'])
     epochs = int(opts['--epochs'])
     lr = float(opts['--lr'])
     torch_seed = int(opts['--torch_seed'])
@@ -64,6 +70,6 @@ def parse_args(argv):
     else:
         experiment_name = datetime.now().strftime("%Y%m%d%H%M_fixed")
 
-    args = (experiment_name, weights, vector, train_weights, embedding_dim, shared_embedding, batch_size, epochs, lr, torch_seed, random_seed, numpy_seed)
+    args = (experiment_name, weights, vector, train_weights, embedding_dim, shared_embedding, batch_size, fract, fract_dataset, epochs, lr, torch_seed, random_seed, numpy_seed)
 
     return args

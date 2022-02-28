@@ -143,7 +143,7 @@ def main(window_size, embedding_dim,  weights, vector, train_weights, shared_emb
     valid_x, valid_y, valid_x_df, test_x = build_periodico_dataset(vocab)
 
     if fract:
-        batch_size = int(len(data[0][0]) / fract_dataset) - int(((len(data[0][0])) // fract_dataset) / fract_dataset)
+        batch_size = int(len(data[0][0]) // fract_dataset)
 
     # TODO: Section E, modify model to improve the embeddings.
     model = CBOW(len(vocab), embedding_dim, num_context_words=window_size-1, weights=weights, vector=vector, train_weights=train_weights, shared_embedding=shared_embedding).to(device)

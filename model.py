@@ -13,7 +13,7 @@ class CBOW(nn.Module):
         if shared_embedding:
             self.embedding = nn.Parameter(torch.rand(num_embeddings, embedding_dim), requires_grad=True)
             self.emb = lambda x : F.embedding(x, self.embedding, padding_idx=0)
-            self.lin = lambda x : F.linear(x, self.embedding),
+            self.lin = lambda x : F.linear(x, self.embedding)
         else:
             self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
             self.emb.weight.data[0] = self.emb.weight.data[1:].sum(dim=0) / num_embeddings

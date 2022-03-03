@@ -17,7 +17,7 @@ from wandb_logger import WandbLogger
 
 
 ACCUMULATE_GRADS = True
-PROCESS_BATCH_SIZE = 7700
+PROCESS_BATCH_SIZE = 5000 #7700
 
 PROJECT_NAME = "SLPDL_WordVectors"
 ENTITY = "slpdl2022"

@@ -64,11 +64,11 @@ def parse_args(argv):
 
     if train_weights:
         if vector:
-            experiment_name = datetime.now().strftime("%Y%m%d%H%M_trained-vector")
+            experiment_name = datetime.now().strftime("%Y%m%d%H%M%S_trained-vector")
         else:
-            experiment_name = datetime.now().strftime("%Y%m%d%H%M_trained-scalar")
+            experiment_name = datetime.now().strftime("%Y%m%d%H%M%S_trained-scalar")
     else:
-        experiment_name = datetime.now().strftime("%Y%m%d%H%M_fixed")
+        experiment_name = datetime.now().strftime("%Y%m%d%H%M%S_fixed")
 
     args = (experiment_name, weights, vector, train_weights, embedding_dim, shared_embedding, batch_size, fract, fract_dataset, epochs, lr, torch_seed, random_seed, numpy_seed)
 

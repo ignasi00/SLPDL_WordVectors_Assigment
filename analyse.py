@@ -11,14 +11,14 @@ from word_analyser_model import WordVectors
 
 
 DATASET_VERSION = 'ca-100'
-CBOW_VOCABULARY_ROOT = f'../input/text-preprocessing/data/{DATASET_VERSION}'
-CBOW_VECTORS_ROOT = f'../input/cbow-training/data/{DATASET_VERSION}'
+CBOW_VOCABULARY_ROOT = f'./data/text-preprocessing/data/{DATASET_VERSION}'
+CBOW_VECTORS_ROOT = f'./model_parameters/{DATASET_VERSION}'
 
 
 plt.rcParams['figure.figsize'] = [9.5, 6]
 
-dict = f'{CBOW_VOCABULARY_ROOT}/ca.wiki.train.tokens.nopunct.dic'
-counter = pickle.load(open(dict, 'rb'))
+dict_ = f'{CBOW_VOCABULARY_ROOT}/ca.wiki.train.tokens.nopunct.dic'
+counter = pickle.load(open(dict_, 'rb'))
 words, values = zip(*counter.most_common(5000))
 
 print('Most frequent Catalan words')
@@ -32,7 +32,7 @@ print(f'Probability of the most frequent word: {values[0]/sum(values):2.3f}')
 
 _ = plt.plot(values[:50], 'g', 2*values[0]/np.arange(2,52), 'r')
 _ = plt.loglog(values)
-plt.show()
+#plt.show()
 
 benford = Counter(int(str(item[1])[0]) for item in counter.most_common(5000))
 
@@ -57,5 +57,5 @@ token_vocab.load(f'{CBOW_VOCABULARY_ROOT}/ca.wiki.vocab')
 model1 = WordVectors(input_word_vectors, token_vocab)
 model2 = WordVectors(output_word_vectors, token_vocab)
 
-model1.most_similar('català')
+print(model1.most_similar('català'))
 model2.analogy('França', 'francès', 'Polònia')

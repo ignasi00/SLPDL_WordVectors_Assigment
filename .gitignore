@@ -46,4 +46,9 @@ data/*/*/*.*
 data/*/*/*/*.*
 !.gitkeep
 artifacts/
+data.nosync/*/*.*
+data.nosync/*/*/*.*
+data.nosync/*/*/*/*.*
+model_parameters/*
 
+.DS_Store

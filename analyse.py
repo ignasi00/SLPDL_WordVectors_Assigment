@@ -11,8 +11,8 @@ from word_analyser_model import WordVectors
 
 
 DATASET_VERSION = 'ca-100'
-CBOW_VOCABULARY_ROOT = f'../input/text-preprocessing/data/{DATASET_VERSION}'
-CBOW_VECTORS_ROOT = f'../input/cbow-training/data/{DATASET_VERSION}'
+CBOW_VOCABULARY_ROOT = f'./data/text-preprocessing/data/{DATASET_VERSION}'
+CBOW_VECTORS_ROOT = f'./model_parameters/{DATASET_VERSION}'
 
 
 plt.rcParams['figure.figsize'] = [9.5, 6]

@@ -45,7 +45,9 @@ class WordVectors:
     
     def analogy(self, x1, x2, y1, topn=5, keep_all=False):
         # If keep_all is False we remove the input words (x1, x2, y1) from the returned closed words
-        # TODO
+        
+
+        
         return [
             ('polonès', 0.9679756),
             ('suec', 0.9589857),

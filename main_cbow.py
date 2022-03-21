@@ -10,16 +10,16 @@ import torch.nn as nn
 from types import SimpleNamespace
 
 from data_loading import Vocabulary, batch_generator, load_preprocessed_dataset
-from docopt_parser_transformers import parse_args
+from docopt_parser import parse_args
 from local_logger import LocalLogger
-from model_transformer import Predictor
+from model import CBOW
 from wandb_logger import WandbLogger
 
 
 ACCUMULATE_GRADS = True
 PROCESS_BATCH_SIZE = 5000 #7700
 
-PROJECT_NAME = "SLPDL_Transformer"
+PROJECT_NAME = "SLPDL_WordVectors"
 ENTITY = "slpdl2022"
 
 DATASET_VERSION = 'ca-100'
@@ -136,9 +136,7 @@ def build_optimizer(optimizer_class, model, **optimizer_params):
     optimizer = optimizer_class(model.parameters(), **optimizer_params)
     return optimizer
 
-
-# TODO: See input parameters for the main function # Arriba España coño
-def main(window_size, embedding_dim, num_epochs, batch_size, fract, fract_dataset, lr, preprocessed_path, modelname, experiment_name, device):
+def main(window_size, embedding_dim,  weights, vector, train_weights, shared_embedding, num_epochs, batch_size, fract, fract_dataset, lr, preprocessed_path, modelname, experiment_name, device):
 
     ####################################### PRETRAINING  #######################################
     vocab, data = load_preprocessed_dataset(preprocessed_path)
@@ -148,8 +146,7 @@ def main(window_size, embedding_dim, num_epochs, batch_size, fract, fract_datase
         batch_size = int(len(data[0][0]) // fract_dataset)
 
     # TODO: Section E, modify model to improve the embeddings.
-    model = Predictor(len(vocab), embedding_dim).to(device)
-
+    model = CBOW(len(vocab), embedding_dim, num_context_words=window_size-1, weights=weights, vector=vector, train_weights=train_weights, shared_embedding=shared_embedding).to(device)
     print_model(model)
 
     criterion = nn.CrossEntropyLoss(reduction='sum') # TODO: IGNASI: puede que haya losses mejores
@@ -160,7 +157,8 @@ def main(window_size, embedding_dim, num_epochs, batch_size, fract, fract_datase
     
     wandb_logger = WandbLogger(PROJECT_NAME, experiment_name, ENTITY)
     wandb_logger.watch_model(model, log="all", log_freq=80)
-    hyperparameters = dict(embedding_dim=embedding_dim, model="base_transformer", num_epochs=num_epochs, batch_size=batch_size, lr=lr)
+    weights_summary = "hand-picked" if isinstance(weights, (torch.Tensor, np.ndarray, list, tuple)) else weights
+    hyperparameters = dict(embedding_dim=embedding_dim, weights=weights_summary, vector=vector, train_weights=train_weights, num_epochs=num_epochs, batch_size=batch_size, lr=lr)
     hyperparameters['optim_type'] = type(optimizer)
     wandb_logger.summarize(hyperparameters)
 
@@ -242,6 +240,6 @@ if __name__ == "__main__":
         device = torch.device('cpu')
         print("WARNING: Training without GPU can be very slow!")
 
-    main(params.window_size, params.embedding_dim, params.epochs, params.batch_size, fract, fract_dataset, lr, params.preprocessed, params.modelname, experiment_name, device)
+    main(params.window_size, params.embedding_dim,  weights, vector, train_weights, shared_embedding, params.epochs, params.batch_size, fract, fract_dataset, lr, params.preprocessed, params.modelname, experiment_name, device)
 
 # TODO: Task 2 of assigment (study of the datasets and submission files) in another program

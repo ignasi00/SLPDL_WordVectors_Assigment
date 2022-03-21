@@ -17,7 +17,7 @@ from wandb_logger import WandbLogger
 
 
 ACCUMULATE_GRADS = True
-PROCESS_BATCH_SIZE = 5000 #7700
+PROCESS_BATCH_SIZE = 4000 #7700
 
 PROJECT_NAME = "SLPDL_Transformer"
 ENTITY = "slpdl2022"

@@ -148,7 +148,7 @@ def main(window_size, embedding_dim, num_epochs, batch_size, fract, fract_datase
         batch_size = int(len(data[0][0]) // fract_dataset)
 
     # TODO: Section E, modify model to improve the embeddings.
-    model = Predictor(len(vocab), embedding_dim).to(device)
+    model = Predictor(len(vocab), embedding_dim, context_words=window_size-1).to(device)
 
     print_model(model)
 

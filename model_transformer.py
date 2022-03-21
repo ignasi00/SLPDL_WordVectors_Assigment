@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 
 class Predictor(nn.Module):
-    def __init__(self, num_embeddings, embedding_dim, context_words=params.window_size-1):
+    def __init__(self, num_embeddings, embedding_dim, context_words=6):
         super().__init__()
         self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
         self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)

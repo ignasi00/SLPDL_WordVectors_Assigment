@@ -10,7 +10,7 @@ import torch.nn as nn
 from types import SimpleNamespace
 
 from data_loading import Vocabulary, batch_generator, load_preprocessed_dataset
-from docopt_parser_transformers import parse_args
+from docopt_parser_transformer import parse_args
 from local_logger import LocalLogger
 from model_transformer import Predictor
 from wandb_logger import WandbLogger

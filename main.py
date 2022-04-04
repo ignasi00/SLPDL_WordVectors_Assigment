@@ -243,6 +243,6 @@ if __name__ == "__main__":
         device = torch.device('cpu')
         print("WARNING: Training without GPU can be very slow!")
 
-    main(params.window_size, params.embedding_dim, params.epochs, params.batch_size, fract, fract_dataset, lr, params.preprocessed, params.modelname, experiment_name, device)
+    main(params.window_size, params.embedding_dim, num_seq_transformer, params.epochs, params.batch_size, fract, fract_dataset, lr, params.preprocessed, params.modelname, experiment_name, device)
 
 # TODO: Task 2 of assigment (study of the datasets and submission files) in another program

@@ -137,8 +137,8 @@ def build_optimizer(optimizer_class, model, **optimizer_params):
     return optimizer
 
 
-# TODO: See input parameters for the main function # Arriba España coño
-def main(window_size, embedding_dim, num_epochs, batch_size, fract, fract_dataset, lr, preprocessed_path, modelname, experiment_name, device):
+# TODO: See input parameters for the main function 
+def main(window_size, embedding_dim, num_seq_transformer, num_epochs, batch_size, fract, fract_dataset, lr, preprocessed_path, modelname, experiment_name, device):
 
     ####################################### PRETRAINING  #######################################
     vocab, data = load_preprocessed_dataset(preprocessed_path)
@@ -148,7 +148,7 @@ def main(window_size, embedding_dim, num_epochs, batch_size, fract, fract_datase
         batch_size = int(len(data[0][0]) // fract_dataset)
 
     # TODO: Section E, modify model to improve the embeddings.
-    model = Predictor(len(vocab), embedding_dim, context_words=window_size-1).to(device)
+    model = Predictor(len(vocab), embedding_dim, context_words=window_size-1, num_seq_transformer=num_seq_transformer).to(device)
 
     print_model(model)
 
@@ -201,7 +201,7 @@ def main(window_size, embedding_dim, num_epochs, batch_size, fract, fract_datase
     model_path = wandb_logger.download_model(os.path.basename(modelname), os.path.dirname(modelname), alias='best')
     model.load_state_dict(torch.load(model_path))
 
-    wandb_logger.summarize(dict(best_weights=str(model.weights.data.view(-1))))
+    #wandb_logger.summarize(dict(best_weights=str(model.weights.data.view(-1))))
 
     ############################################################################################
 
@@ -220,11 +220,12 @@ def main(window_size, embedding_dim, num_epochs, batch_size, fract, fract_datase
 
 if __name__ == "__main__":
 
-    (experiment_name, weights, vector, train_weights, embedding_dim, shared_embedding, batch_size, fract, fract_dataset, epochs, lr, torch_seed, random_seed, numpy_seed) = parse_args(sys.argv[1:])
+    (experiment_name, weights, vector, train_weights, embedding_dim, num_seq_transformer, batch_size, fract, fract_dataset, epochs, lr, torch_seed, random_seed, numpy_seed) = parse_args(sys.argv[1:])
 
     params.embedding_dim = embedding_dim
     params.batch_size = batch_size
     params.epochs = epochs
+    params.num_seq_transformer = num_seq_transformer
 
     torch.manual_seed(torch_seed)
     random.seed(random_seed)

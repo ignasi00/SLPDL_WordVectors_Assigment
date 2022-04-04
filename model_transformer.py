@@ -6,13 +6,19 @@ import torch.nn.functional as F
 
 
 class Predictor(nn.Module):
-    def __init__(self, num_embeddings, embedding_dim, context_words=6):
+    def __init__(self, num_embeddings, embedding_dim, context_words=6, num_seq_transformer=1):
         super().__init__()
         self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
         self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
-        self.att = TransformerLayer(embedding_dim)
+        
+        self.att = nn.Sequential([TransformerLayer(embedding_dim) for _ in range(num_seq_transformer)]
+        
         self.position_embedding = nn.Parameter(torch.Tensor(context_words, embedding_dim))
         nn.init.xavier_uniform_(self.position_embedding)
+
+        # Task1: Try Feedforward Neural Network 
+        self.lin1 = nn.Linear()
+
 
     # B = Batch size
     # W = Number of context words (left + right)

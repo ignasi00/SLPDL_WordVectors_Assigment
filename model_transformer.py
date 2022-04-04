@@ -16,8 +16,6 @@ class Predictor(nn.Module):
         self.position_embedding = nn.Parameter(torch.Tensor(context_words, embedding_dim))
         nn.init.xavier_uniform_(self.position_embedding)
 
-        # Task1: Try Feedforward Neural Network 
-        self.lin1 = nn.Linear()
 
 
     # B = Batch size

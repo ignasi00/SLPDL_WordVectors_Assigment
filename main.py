@@ -160,7 +160,7 @@ def main(window_size, embedding_dim, num_seq_transformer, num_epochs, batch_size
     
     wandb_logger = WandbLogger(PROJECT_NAME, experiment_name, ENTITY)
     wandb_logger.watch_model(model, log="all", log_freq=80)
-    hyperparameters = dict(embedding_dim=embedding_dim, model="base_transformer", num_epochs=num_epochs, batch_size=batch_size, lr=lr)
+    hyperparameters = dict(embedding_dim=embedding_dim, model="base_transformer", num_epochs=num_epochs, batch_size=batch_size, lr=lr, num_seq_transformer=num_seq_transformer)
     hyperparameters['optim_type'] = type(optimizer)
     wandb_logger.summarize(hyperparameters)
 

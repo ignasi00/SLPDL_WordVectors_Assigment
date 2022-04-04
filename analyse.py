@@ -32,7 +32,7 @@ print(f'Probability of the most frequent word: {values[0]/sum(values):2.3f}')
 
 _ = plt.plot(values[:50], 'g', 2*values[0]/np.arange(2,52), 'r')
 _ = plt.loglog(values)
-#plt.show()
+plt.show()
 
 benford = Counter(int(str(item[1])[0]) for item in counter.most_common(5000))
 

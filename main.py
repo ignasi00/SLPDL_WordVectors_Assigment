@@ -51,7 +51,7 @@ def train(model, criterion, optimizer, idata, target, batch_size, device, local_
     model.train()
     local_logger.new_epoch()
 
-    process_batch_size = PROCESS_BATCH_SIZE if ACCUMULATE_GRADS else batch_size
+    process_batch_size = min(batch_size, PROCESS_BATCH_SIZE) if ACCUMULATE_GRADS else batch_size
     model.zero_grad()
     proceced_samples = 0
 

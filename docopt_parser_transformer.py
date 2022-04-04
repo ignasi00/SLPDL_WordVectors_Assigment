@@ -8,6 +8,7 @@ TRAIN_WEIGHTS = False
 VECTOR = False
 EMBEDDING_DIM = 100
 NUM_SEQ_TRANSFORMER = 1
+NUM_HEADS_ATT = 1
 BATCH_SIZE = 1000
 FRACT = False
 FRACT_DATASET = 1
@@ -20,7 +21,7 @@ NUMPY_SEED = 0
 
 DOCTEXT = f"""
 Usage:
-  main [--weights=<w>...|--train_weights=<tw>] [--vector=<v>] [--embedding_dim=<ed>] [--num_seq_transformer=<nst>] [--batch_size=<bs>|(--fract=<f> --fract_dataset=<fd>)] [--epochs=<e>] [--lr=<lr>] [--torch_seed=<ts>] [--random_seed=<rs>] [--numpy_seed=<ns>]
+  main [--weights=<w>...|--train_weights=<tw>] [--vector=<v>] [--embedding_dim=<ed>] [--num_seq_transformer=<nst>] [--num_heads_att=<nha>] [--batch_size=<bs>|(--fract=<f> --fract_dataset=<fd>)] [--epochs=<e>] [--lr=<lr>] [--torch_seed=<ts>] [--random_seed=<rs>] [--numpy_seed=<ns>]
   main -h | --help
 
 ########################################################
@@ -33,6 +34,7 @@ Options:
   --vector=<v>                Bool. Set to True if the weights ponder the embedding dimensions. Set to False if the weights are only position-wise [default: {VECTOR}]. 
   --embedding_dim=<ed>        Int. Number of dimensions for the embedding space [default: {EMBEDDING_DIM}].
   --num_seq_transformer=<nst>    Int. Lenght of the sequence of Transformer Layers in the model [default: {NUM_SEQ_TRANSFORMER}].
+  --num_heads_att=<nha>    Int. Number of self-attention heads of a Transformer Layer [default: {NUM_HEADS_ATT}].
   --batch_size=<bs>           Int. Number of samples to be processed simultaneously (before applying a optimization step) [default: {BATCH_SIZE}].
   --fract=<f>                 Bool. Set to True in order to define the batch size as a fraction of the dataset [default: {FRACT}].
   --fract_dataset=<fd>        Int. Number of parts to divide the dataset into [default: {FRACT_DATASET}].
@@ -53,6 +55,7 @@ def parse_args(argv):
     vector = True if opts['--vector'] == 'True' else (False if opts['--vector'] == 'False' else None)
     embedding_dim = int(opts['--embedding_dim'])
     num_seq_transformer = int(opts['--num_seq_transformer']) 
+    num_heads_att = int(opts['--num_heads_att']) 
     batch_size = int(opts['--batch_size'])
     fract = True if opts['--fract'] == 'True' else False
     fract_dataset = int(opts['--fract_dataset'])
@@ -70,6 +73,6 @@ def parse_args(argv):
     else:
         experiment_name = datetime.now().strftime("%Y%m%d%H%M%S_fixed")
 
-    args = (experiment_name, weights, vector, train_weights, embedding_dim, num_seq_transformer, batch_size, fract, fract_dataset, epochs, lr, torch_seed, random_seed, numpy_seed)
+    args = (experiment_name, weights, vector, train_weights, embedding_dim, num_seq_transformer, num_heads_att, batch_size, fract, fract_dataset, epochs, lr, torch_seed, random_seed, numpy_seed)
 
     return args

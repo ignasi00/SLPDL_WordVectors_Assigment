@@ -138,7 +138,7 @@ def build_optimizer(optimizer_class, model, **optimizer_params):
 
 
 # TODO: See input parameters for the main function 
-def main(window_size, embedding_dim, num_seq_transformer, num_epochs, batch_size, fract, fract_dataset, lr, preprocessed_path, modelname, experiment_name, device):
+def main(window_size, embedding_dim, num_seq_transformer, num_heads_att, num_epochs, batch_size, fract, fract_dataset, lr, preprocessed_path, modelname, experiment_name, device):
 
     ####################################### PRETRAINING  #######################################
     vocab, data = load_preprocessed_dataset(preprocessed_path)
@@ -148,7 +148,7 @@ def main(window_size, embedding_dim, num_seq_transformer, num_epochs, batch_size
         batch_size = int(len(data[0][0]) // fract_dataset)
 
     # TODO: Section E, modify model to improve the embeddings.
-    model = Predictor(len(vocab), embedding_dim, context_words=window_size-1, num_seq_transformer=num_seq_transformer).to(device)
+    model = Predictor(len(vocab), embedding_dim, context_words=window_size-1, num_seq_transformer=num_seq_transformer, num_heads_att=num_heads_att).to(device)
 
     print_model(model)
 
@@ -160,7 +160,7 @@ def main(window_size, embedding_dim, num_seq_transformer, num_epochs, batch_size
     
     wandb_logger = WandbLogger(PROJECT_NAME, experiment_name, ENTITY)
     wandb_logger.watch_model(model, log="all", log_freq=80)
-    hyperparameters = dict(embedding_dim=embedding_dim, model="base_transformer", num_epochs=num_epochs, batch_size=batch_size, lr=lr, num_seq_transformer=num_seq_transformer)
+    hyperparameters = dict(embedding_dim=embedding_dim, model="base_transformer", num_epochs=num_epochs, batch_size=batch_size, lr=lr, num_seq_transformer=num_seq_transformer, num_heads_att=num_heads_att) 
     hyperparameters['optim_type'] = type(optimizer)
     wandb_logger.summarize(hyperparameters)
 
@@ -220,12 +220,13 @@ def main(window_size, embedding_dim, num_seq_transformer, num_epochs, batch_size
 
 if __name__ == "__main__":
 
-    (experiment_name, weights, vector, train_weights, embedding_dim, num_seq_transformer, batch_size, fract, fract_dataset, epochs, lr, torch_seed, random_seed, numpy_seed) = parse_args(sys.argv[1:])
+    (experiment_name, weights, vector, train_weights, embedding_dim, num_seq_transformer, num_heads_att, batch_size, fract, fract_dataset, epochs, lr, torch_seed, random_seed, numpy_seed) = parse_args(sys.argv[1:])
 
     params.embedding_dim = embedding_dim
     params.batch_size = batch_size
     params.epochs = epochs
     params.num_seq_transformer = num_seq_transformer
+    params.num_heads_att = num_heads_att
 
     torch.manual_seed(torch_seed)
     random.seed(random_seed)
@@ -243,6 +244,6 @@ if __name__ == "__main__":
         device = torch.device('cpu')
         print("WARNING: Training without GPU can be very slow!")
 
-    main(params.window_size, params.embedding_dim, num_seq_transformer, params.epochs, params.batch_size, fract, fract_dataset, lr, params.preprocessed, params.modelname, experiment_name, device)
+    main(params.window_size, params.embedding_dim, num_seq_transformer, num_heads_att, params.epochs, params.batch_size, fract, fract_dataset, lr, params.preprocessed, params.modelname, experiment_name, device)
 
 # TODO: Task 2 of assigment (study of the datasets and submission files) in another program

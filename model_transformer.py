@@ -6,12 +6,12 @@ import torch.nn.functional as F
 
 
 class Predictor(nn.Module):
-    def __init__(self, num_embeddings, embedding_dim, context_words=6, num_seq_transformer=1):
+    def __init__(self, num_embeddings, embedding_dim, context_words=6, num_seq_transformer=1, num_heads_att=1):
         super().__init__()
         self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
         self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
         
-        self.att = nn.Sequential(*[TransformerLayer(embedding_dim) for _ in range(num_seq_transformer)])
+        self.att = nn.Sequential(*[TransformerLayer(embedding_dim, num_heads_att=num_heads_att) for _ in range(num_seq_transformer)])
         
         self.position_embedding = nn.Parameter(torch.Tensor(context_words, embedding_dim))
         nn.init.xavier_uniform_(self.position_embedding)
@@ -37,14 +37,19 @@ class Predictor(nn.Module):
         return y
 
 class TransformerLayer(nn.Module):
-    def __init__(self, d_model, dim_feedforward=512, dropout=0.1, activation="relu"):
+    def __init__(self, d_model, dim_feedforward=512, dropout=0.1, activation="relu", num_heads_att=1):
         super().__init__()
-        self.self_attn = SelfAttention(d_model)
+        if num_heads_transformer == 1:
+            self.self_attn = SelfAttention(d_model)
+        else:
+            self.multi_head = nn.ModuleList([SelfAttention(d_model) for _ in range(num_heads_att)])
+            self.self_attn = lambda u : torch.cat([f(u) for f in self.multi_head])
+
         # Implementation of Feedforward model
-        self.linear1 = nn.Linear(d_model, dim_feedforward)
+        self.linear1 = nn.Linear(d_model * num_heads_att, dim_feedforward)
         self.dropout = nn.Dropout(dropout)
         self.linear2 = nn.Linear(dim_feedforward, d_model)
-        self.norm1 = nn.LayerNorm(d_model)
+        self.norm1 = nn.LayerNorm(d_model * num_heads_att)
         self.norm2 = nn.LayerNorm(d_model)
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)

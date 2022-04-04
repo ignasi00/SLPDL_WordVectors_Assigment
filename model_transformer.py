@@ -11,7 +11,7 @@ class Predictor(nn.Module):
         self.emb = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
         self.lin = nn.Linear(embedding_dim, num_embeddings, bias=False)
         
-        self.att = nn.Sequential([TransformerLayer(embedding_dim) for _ in range(num_seq_transformer)]
+        self.att = nn.Sequential([TransformerLayer(embedding_dim) for _ in range(num_seq_transformer)])
         
         self.position_embedding = nn.Parameter(torch.Tensor(context_words, embedding_dim))
         nn.init.xavier_uniform_(self.position_embedding)

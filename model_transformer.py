@@ -43,7 +43,7 @@ class TransformerLayer(nn.Module):
             self.self_attn = SelfAttention(d_model)
         else:
             self.multi_head = nn.ModuleList([SelfAttention(d_model) for _ in range(num_heads_att)])
-            self.self_attn = lambda u : torch.cat([f(u) for f in self.multi_head])
+            self.self_attn = lambda u : torch.cat([f(u) for f in self.multi_head], dim=-1)
 
         # Implementation of Feedforward model
         self.linear1 = nn.Linear(d_model * num_heads_att, dim_feedforward)

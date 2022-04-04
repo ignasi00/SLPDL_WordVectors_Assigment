@@ -39,7 +39,7 @@ class Predictor(nn.Module):
 class TransformerLayer(nn.Module):
     def __init__(self, d_model, dim_feedforward=512, dropout=0.1, activation="relu", num_heads_att=1):
         super().__init__()
-        if num_heads_transformer == 1:
+        if num_heads_att == 1:
             self.self_attn = SelfAttention(d_model)
         else:
             self.multi_head = nn.ModuleList([SelfAttention(d_model) for _ in range(num_heads_att)])
